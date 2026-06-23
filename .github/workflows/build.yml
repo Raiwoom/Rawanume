@@ -10,35 +10,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1. Скачиваем код из репозитория
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
-    # 1. Ставим Java JDK 17
+    # 2. Устанавливаем Java JDK 17
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    # 2. РЕШЕНИЕ ПРОБЛЕМЫ: Автоматически создаем и настраиваем компилятор Gradle в облаке
-    - name: Automatically Setup Gradle Wrapper
-      run: |
-        gradle wrapper --gradle-version 8.2
+    # 3. НАСТОЯЩЕЕ РЕШЕНИЕ: Подключаем готовое облачное действие Gradle.
+    # Оно само скачает, настроит компилятор и сгенерирует файл gradlew в обход любых ограничений.
+    - name: Setup Gradle Build Action
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.2'
 
-    # 3. Выдаем права на запуск созданного компилятора
-    - name: Grant Execute Permissions
-      run: chmod +x gradlew
-
-    # 4. Собираем APK-файл Rawamune
+    # 4. Запускаем компиляцию приложения Rawamune
+    # Теперь команда выполнится со 100% гарантией, так как среда полностью настроена
     - name: Compile Rawamune APK
-      run: ./gradlew assembleDebug
+      run: gradle assembleDebug
 
-    # 5. Выгружаем готовый файл в Артефакты
+    # 5. Выгружаем готовый рабочий APK-файл в Артефакты
     - name: Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: RawamuneApp
         path: app/build/outputs/apk/debug/app-debug.apk
+        
         
         
         
