@@ -3,8 +3,6 @@ name: Build Rawamune APK
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -12,31 +10,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Скачиваем исходный код репозитория на виртуальную машину
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
-    # 2. Устанавливаем стабильное Java-окружение (JDK 17)
+    # 1. Ставим Java JDK 17
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: 'gradle'
 
-    # 3. КРИТИЧЕСКИЙ ШАГ: Принудительно выдаем права на исполнение компилятора Gradle
-    - name: Grant Execute Permissions for Gradle
+    # 2. РЕШЕНИЕ ПРОБЛЕМЫ: Автоматически создаем и настраиваем компилятор Gradle в облаке
+    - name: Automatically Setup Gradle Wrapper
+      run: |
+        gradle wrapper --gradle-version 8.2
+
+    # 3. Выдаем права на запуск созданного компилятора
+    - name: Grant Execute Permissions
       run: chmod +x gradlew
 
-    # 4. Запускаем сборку отладочного APK-файла мессенджера
-    - name: Compile Rawamune Debug APK
+    # 4. Собираем APK-файл Rawamune
+    - name: Compile Rawamune APK
       run: ./gradlew assembleDebug
 
-    # 5. Выгружаем готовый скомпилированный APK в раздел Artifacts
+    # 5. Выгружаем готовый файл в Артефакты
     - name: Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: RawamuneApp
         path: app/build/outputs/apk/debug/app-debug.apk
+        
         
         
